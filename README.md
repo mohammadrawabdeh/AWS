@@ -1,2 +1,1 @@
 # AWS
-aws to gcp
