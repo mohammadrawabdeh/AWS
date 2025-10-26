@@ -11,7 +11,7 @@ terraform {
 
 provider "google" {
   project     = "my-project-mohammad-476307"
-  region      = "us-central1"
+  region      = "us-west4"
   credentials = file("my-project-mohammad-476307-339d242880fc.json")
 }
 
