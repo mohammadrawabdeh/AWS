@@ -9,7 +9,7 @@ terraform {
 
 provider "google" {
   project = "my-project-mohammad-476307"
-  region  = "us-central1"
+  region  = "us-west4"
 }
 
 resource "google_iam_custom_role" "readonly_access_role" {
