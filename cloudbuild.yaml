@@ -7,24 +7,32 @@ steps:
       - |
         terraform init
 
-  # Step 2: Terraform Plan
+  # Step 2: Terraform Validate (optional but recommended)
   - name: hashicorp/terraform:1.7.7
     entrypoint: sh
     args:
       - -c
       - |
-        terraform plan -out=tfplan
+        terraform validate
 
-  # Step 3: Terraform Apply
+  # Step 3: Terraform Plan with lock disabled
   - name: hashicorp/terraform:1.7.7
     entrypoint: sh
     args:
       - -c
       - |
-        terraform apply -auto-approve tfplan
+        terraform plan -out=tfplan -lock=false
 
-# Use GCP Cloud Build default SA or specify another SA here
-# substitutions:
-#   _TERRAFORM_SA: terraform-admin@my-project-mohammad-476307.iam.gserviceaccount.com
+  # Step 4: Terraform Apply with lock disabled
+  - name: hashicorp/terraform:1.7.7
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        terraform apply -auto-approve -lock=false tfplan
 
-timeout: "1200s"  # 20 minutes, adjust as needed
+# Service account for Cloud Build
+substitutions:
+  _TERRAFORM_SA: terraform-admin@my-project-mohammad-476307.iam.gserviceaccount.com
+
+timeout: "1200s"
