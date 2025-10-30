@@ -1,0 +1,30 @@
+steps:
+  # Step 1: Terraform Init
+  - name: hashicorp/terraform:1.7.7
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        terraform init
+
+  # Step 2: Terraform Plan
+  - name: hashicorp/terraform:1.7.7
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        terraform plan -out=tfplan
+
+  # Step 3: Terraform Apply
+  - name: hashicorp/terraform:1.7.7
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        terraform apply -auto-approve tfplan
+
+# Use GCP Cloud Build default SA or specify another SA here
+# substitutions:
+#   _TERRAFORM_SA: terraform-admin@my-project-mohammad-476307.iam.gserviceaccount.com
+
+timeout: "1200s"  # 20 minutes, adjust as needed
