@@ -5,6 +5,7 @@ terraform {
       version = ">= 5.0.0"
     }
   }
+}
 
 provider "google" {
   project = var.gcp_project_id
