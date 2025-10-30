@@ -6,13 +6,6 @@ terraform {
     }
   }
 
-  # 🔹 Backend configuration to store Terraform state in GCS
-  backend "gcs" {
-    bucket  = "460738274352-us-central1-blueprint-config"  # replace with your bucket
-    prefix  = "myaws-auth/terraform/state"
-  }
-}
-
 provider "google" {
   project = var.gcp_project_id
   region  = var.gcp_region
