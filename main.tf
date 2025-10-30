@@ -1,29 +1,39 @@
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 5.0.0"
+    }
+  }
+}
+
 provider "google" {
   project = var.gcp_project_id
   region  = var.gcp_region
 }
 
-# 1. Create a GCP Service Account
+# 1️⃣ Create a GCP Service Account (Read-only Access)
 resource "google_service_account" "aws_readonly_sa" {
   account_id   = "aws-readonly-sa"
   display_name = "AWS Read-only Access Service Account"
 }
 
-# 2. Assign Viewer role to service account (read-only)
+# 2️⃣ Assign Viewer Role to the Service Account
 resource "google_project_iam_member" "readonly_binding" {
   project = var.gcp_project_id
   role    = "roles/viewer"
   member  = "serviceAccount:${google_service_account.aws_readonly_sa.email}"
 }
 
-# 3. Create a Workload Identity Pool
+# 3️⃣ Create a Workload Identity Pool
 resource "google_iam_workload_identity_pool" "aws_pool" {
-  workload_identity_pool_id = "aws-pool-new"
+  workload_identity_pool_id = "aws-pool-mohammad14"
   display_name              = "AWS Workload Identity Pool"
   description               = "Pool to allow AWS access to GCP"
+  # Note: optionally specify location = "global" (default) etc.
 }
 
-# 4. Create AWS Provider for the Pool
+# 4️⃣ Create AWS Provider for the Pool
 resource "google_iam_workload_identity_pool_provider" "aws_provider" {
   workload_identity_pool_id          = google_iam_workload_identity_pool.aws_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "aws-provider"
@@ -42,17 +52,27 @@ resource "google_iam_workload_identity_pool_provider" "aws_provider" {
   attribute_condition = "assertion.arn.startsWith('arn:aws:sts::${var.aws_account_id}:assumed-role/${var.aws_role_name}')"
 }
 
-# 5. Allow AWS role to impersonate the Service Account
+# 5️⃣ Allow AWS role to impersonate the GCP service account
 resource "google_service_account_iam_binding" "aws_impersonate" {
   service_account_id = google_service_account.aws_readonly_sa.name
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
-    "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.aws_pool.name}/attribute.aws_role/arn:aws:iam::${var.aws_account_id}:role/${var.aws_role_name}"
+    "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.aws_pool.name}/attribute.aws_role/arn:aws:sts::${var.aws_account_id}:assumed-role/${var.aws_role_name}"
   ]
 }
 
-# Outputs
+# 6️⃣ Grant service account token creator role to the workload identity pool
+resource "google_service_account_iam_binding" "token_creator" {
+  service_account_id = google_service_account.aws_readonly_sa.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+
+  members = [
+    "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.aws_pool.name}/*"
+  ]
+}
+
+# 🔹 Outputs
 output "workload_identity_pool_id" {
   value = google_iam_workload_identity_pool.aws_pool.workload_identity_pool_id
 }
@@ -65,7 +85,10 @@ output "gcp_service_account_email" {
   value = google_service_account.aws_readonly_sa.email
 }
 
-# Variables
+
+
+
+# 🔹 Variables
 variable "gcp_project_id" {
   type    = string
   default = "my-project-mohammad-476307"
@@ -83,5 +106,6 @@ variable "aws_account_id" {
 
 variable "aws_role_name" {
   type    = string
-  default = "MyGCPfunction-role-6rkmwl64"
+  default = "gcpgcp-role-gjwu85iw"
 }
+
