@@ -5,6 +5,12 @@ terraform {
       version = ">= 5.0.0"
     }
   }
+
+  # 🔹 Backend configuration to store Terraform state in GCS
+  backend "gcs" {
+    bucket  = "460738274352-us-central1-blueprint-config"  # replace with your bucket
+    prefix  = "myaws-auth/terraform/state"
+  }
 }
 
 provider "google" {
@@ -30,7 +36,7 @@ resource "google_iam_workload_identity_pool" "aws_pool" {
   workload_identity_pool_id = "aws-pool-mohammad14"
   display_name              = "AWS Workload Identity Pool"
   description               = "Pool to allow AWS access to GCP"
-  # Note: optionally specify location = "global" (default) etc.
+  # optional: location = "global"
 }
 
 # 4️⃣ Create AWS Provider for the Pool
@@ -85,9 +91,6 @@ output "gcp_service_account_email" {
   value = google_service_account.aws_readonly_sa.email
 }
 
-
-
-
 # 🔹 Variables
 variable "gcp_project_id" {
   type    = string
@@ -108,4 +111,3 @@ variable "aws_role_name" {
   type    = string
   default = "gcpgcp-role-gjwu85iw"
 }
-
